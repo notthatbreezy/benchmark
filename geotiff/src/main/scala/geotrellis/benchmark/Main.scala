@@ -74,9 +74,9 @@ trait GeoTiffReadBenchmark extends SimpleBenchmark {
   final def readNative(path: String) =
     geotrellis.raster.io.geotiff.reader.GeoTiffReader.read(path)
 
-  @inline
-  final def readGeoTools(path: String) =
-    geotrellis.geotools.GeoTiffReader.read(path)
+  // @inline
+  // final def readGeoTools(path: String) =
+  //   geotrellis.geotools.GeoTiffReader.read(path)
 }
 
 object ReadLargeUncompressed extends BenchmarkRunner(classOf[ReadLargeUncompressed])
@@ -91,8 +91,8 @@ class ReadLargeUncompressed extends GeoTiffReadBenchmark {
   def timeNativeReadAspectTif(reps: Int) = run(reps)(nativeReadAspectTif)
   def nativeReadAspectTif = readNative(path)
 
-  def timeGeotoolsReadAspectTif(reps: Int) = run(reps)(geotoolsReadAspectTif)
-  def geotoolsReadAspectTif = readGeoTools(path)
+  // def timeGeotoolsReadAspectTif(reps: Int) = run(reps)(geotoolsReadAspectTif)
+  // def geotoolsReadAspectTif = readGeoTools(path)
 }
 
 object ReadCCITTFAX3 extends BenchmarkRunner(classOf[ReadCCITTFAX3])
@@ -106,8 +106,8 @@ class ReadCCITTFAX3 extends GeoTiffReadBenchmark {
   def timeNativeCCITTFAX3(reps: Int) = run(reps)(nativeCCITTFAX3)
   def nativeCCITTFAX3 = readNative(path)
 
-  def timeGeotoolsCCITTFAX3(reps: Int) = run(reps)(geotoolsCCITTFAX3)
-  def geotoolsCCITTFAX3 = readGeoTools(path)
+  // def timeGeotoolsCCITTFAX3(reps: Int) = run(reps)(geotoolsCCITTFAX3)
+  // def geotoolsCCITTFAX3 = readGeoTools(path)
 }
 
 object ReadCCITTFAX4 extends BenchmarkRunner(classOf[ReadCCITTFAX4])
@@ -121,8 +121,8 @@ class ReadCCITTFAX4 extends GeoTiffReadBenchmark {
   def timeNativeCCITTFAX4(reps: Int) = run(reps)(nativeCCITTFAX4)
   def nativeCCITTFAX4 = readNative(path)
 
-  def timeGeotoolsCCITTFAX4(reps: Int) = run(reps)(geotoolsCCITTFAX4)
-  def geotoolsCCITTFAX4 = readGeoTools(path)
+  // def timeGeotoolsCCITTFAX4(reps: Int) = run(reps)(geotoolsCCITTFAX4)
+  // def geotoolsCCITTFAX4 = readGeoTools(path)
 }
 
 object ReadUncompressed extends BenchmarkRunner(classOf[ReadUncompressed])
@@ -136,8 +136,8 @@ class ReadUncompressed extends GeoTiffReadBenchmark {
   def timeNativeUncompressed(reps: Int) = run(reps)(nativeUncompressed)
   def nativeUncompressed = readNative(path)
 
-  def timeGeotoolsUncompressed(reps: Int) = run(reps)(geotoolsUncompressed)
-  def geotoolsUncompressed = readGeoTools(path)
+  // def timeGeotoolsUncompressed(reps: Int) = run(reps)(geotoolsUncompressed)
+  // def geotoolsUncompressed = readGeoTools(path)
 }
 
 object ReadTiledUncompressed extends BenchmarkRunner(classOf[ReadTiledUncompressed])
@@ -151,8 +151,8 @@ class ReadTiledUncompressed extends GeoTiffReadBenchmark {
   def timeNativeTiledUncompressed(reps: Int) = run(reps)(nativeTiledUncompressed)
   def nativeTiledUncompressed = readNative(path)
 
-  def timeGeotoolsTiledUncompressed(reps: Int) = run(reps)(geotoolsTiledUncompressed)
-  def geotoolsTiledUncompressed = readGeoTools(path)
+  // def timeGeotoolsTiledUncompressed(reps: Int) = run(reps)(geotoolsTiledUncompressed)
+  // def geotoolsTiledUncompressed = readGeoTools(path)
 }
 
 object ReadLZW extends BenchmarkRunner(classOf[ReadLZW])
@@ -166,8 +166,8 @@ class ReadLZW extends GeoTiffReadBenchmark {
   def timeNativeLZW(reps: Int) = run(reps)(nativeLZW)
   def nativeLZW = readNative(path)
 
-  def timeGeotoolsLZW(reps: Int) = run(reps)(geotoolsLZW)
-  def geotoolsLZW = readGeoTools(path)
+  // def timeGeotoolsLZW(reps: Int) = run(reps)(geotoolsLZW)
+  // def geotoolsLZW = readGeoTools(path)
 }
 
 object ReadPackedBits extends BenchmarkRunner(classOf[ReadPackedBits])
@@ -181,8 +181,8 @@ class ReadPackedBits extends GeoTiffReadBenchmark {
   def timeNativePackedBits(reps: Int) = run(reps)(nativePackedBits)
   def nativePackedBits = readNative(path)
 
-  def timeGeotoolsPackedBits(reps: Int) = run(reps)(geotoolsPackedBits)
-  def geotoolsPackedBits = readGeoTools(path)
+  // def timeGeotoolsPackedBits(reps: Int) = run(reps)(geotoolsPackedBits)
+  // def geotoolsPackedBits = readGeoTools(path)
 }
 
 object ReadZLib extends BenchmarkRunner(classOf[ReadZLib])
@@ -196,8 +196,8 @@ class ReadZLib extends GeoTiffReadBenchmark {
   def timeNativeZLib(reps: Int) = run(reps)(nativeZLib)
   def nativeZLib = readNative(path)
 
-  def timeGeotoolsZLib(reps: Int) = run(reps)(geotoolsZLib)
-  def geotoolsZLib = readGeoTools(path)
+  // def timeGeotoolsZLib(reps: Int) = run(reps)(geotoolsZLib)
+  // def geotoolsZLib = readGeoTools(path)
 }
 
 object ReadUncompressedESRI extends BenchmarkRunner(classOf[ReadUncompressedESRI])
@@ -211,8 +211,8 @@ class ReadUncompressedESRI extends GeoTiffReadBenchmark {
   def timeNativeUncompressedESRI(reps: Int) = run(reps)(nativeUncompressedESRI)
   def nativeUncompressedESRI = readNative(path)
 
-  def timeGeotoolsUncompressedESRI(reps: Int) = run(reps)(geotoolsUncompressedESRI)
-  def geotoolsUncompressedESRI = readGeoTools(path)
+  // def timeGeotoolsUncompressedESRI(reps: Int) = run(reps)(geotoolsUncompressedESRI)
+  // def geotoolsUncompressedESRI = readGeoTools(path)
 }
 
 object ReadUncompressedESRIStripped extends BenchmarkRunner(classOf[ReadUncompressedESRIStripped])
@@ -226,8 +226,8 @@ class ReadUncompressedESRIStripped extends GeoTiffReadBenchmark {
   def timeNativeUncompressedESRIStripped(reps: Int) = run(reps)(nativeUncompressedESRIStripped)
   def nativeUncompressedESRIStripped = readNative(path)
 
-  def timeGeotoolsUncompressedESRIStripped(reps: Int) = run(reps)(geotoolsUncompressedESRIStripped)
-  def geotoolsUncompressedESRIStripped = readGeoTools(path)
+  // def timeGeotoolsUncompressedESRIStripped(reps: Int) = run(reps)(geotoolsUncompressedESRIStripped)
+  // def geotoolsUncompressedESRIStripped = readGeoTools(path)
 }
 
 // Run this to profile with VisualVM or similar.
