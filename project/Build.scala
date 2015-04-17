@@ -93,6 +93,30 @@ object BenchmarkBuild extends Build {
     Project("geotiff", file("geotiff"))
       .settings(geotiffSettings:_*)
 
+  lazy val spark: Project =
+    Project("spark", file("spark"))
+      .settings(sparkSettings:_*)
+
+  lazy val sparkSettings =
+    Seq(
+      organization := "com.azavea.geotrellis",
+      name := "benchmark-spark",
+
+      scalaVersion := Version.scala,
+
+      libraryDependencies ++= Seq(
+        "com.google.code.caliper" % "caliper" % "1.0-SNAPSHOT" from "http://plastic-idolatry.com/jars/caliper-1.0-SNAPSHOT.jar",
+        "com.google.guava" % "guava" % "r09",
+        "com.google.code.java-allocation-instrumenter" % "java-allocation-instrumenter" % "2.0",
+        "com.google.code.gson" % "gson" % "1.7.1",
+        "com.azavea.geotrellis" %% "geotrellis-spark" % Version.geotrellis
+      ),
+
+      // enable forking in both run and test
+      fork := true
+
+    )
+
   lazy val geotiffSettings =
     Seq(
       organization := "com.azavea.geotrellis",
