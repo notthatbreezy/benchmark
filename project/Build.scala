@@ -12,6 +12,7 @@ object Version {
 
   val geotrellis  = "0.10.0-SNAPSHOT"
   val scala       = "2.10.4"
+  val spark       = "1.2.1"
 }
 
 object BenchmarkBuild extends Build {
@@ -78,6 +79,7 @@ object BenchmarkBuild extends Build {
   lazy val root =
     Project("benchmarks", file("."))
       .aggregate(geotiff)
+      .aggregate(spark)
       .settings(
       initialCommands in console:=
         """
@@ -87,11 +89,6 @@ object BenchmarkBuild extends Build {
           """
     )
 
-  // Project: geotiff-benchmark
-
-  lazy val geotiff: Project =
-    Project("geotiff", file("geotiff"))
-      .settings(geotiffSettings:_*)
 
   lazy val spark: Project =
     Project("spark", file("spark"))
@@ -105,17 +102,24 @@ object BenchmarkBuild extends Build {
       scalaVersion := Version.scala,
 
       libraryDependencies ++= Seq(
+        "com.azavea.geotrellis" %% "geotrellis-spark" % Version.geotrellis,
         "com.google.code.caliper" % "caliper" % "1.0-SNAPSHOT" from "http://plastic-idolatry.com/jars/caliper-1.0-SNAPSHOT.jar",
+        "org.apache.spark" %% "spark-core" % "1.2.1",
         "com.google.guava" % "guava" % "r09",
         "com.google.code.java-allocation-instrumenter" % "java-allocation-instrumenter" % "2.0",
-        "com.google.code.gson" % "gson" % "1.7.1",
-        "com.azavea.geotrellis" %% "geotrellis-spark" % Version.geotrellis
+        "com.google.code.gson" % "gson" % "1.7.1"
       ),
 
       // enable forking in both run and test
       fork := true
 
     )
+
+  // Project: geotiff-benchmark
+
+  lazy val geotiff: Project =
+    Project("geotiff", file("geotiff"))
+      .settings(geotiffSettings:_*)
 
   lazy val geotiffSettings =
     Seq(
@@ -129,6 +133,7 @@ object BenchmarkBuild extends Build {
 
       libraryDependencies ++= Seq(
         "com.google.code.caliper" % "caliper" % "1.0-SNAPSHOT" from "http://plastic-idolatry.com/jars/caliper-1.0-SNAPSHOT.jar",
+        "org.apache.spark" %% "spark-core" % "1.2.1",
         "com.google.guava" % "guava" % "r09",
         "com.google.code.java-allocation-instrumenter" % "java-allocation-instrumenter" % "2.0",
         "com.google.code.gson" % "gson" % "1.7.1",
