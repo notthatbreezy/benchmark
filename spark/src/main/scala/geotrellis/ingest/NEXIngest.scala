@@ -16,15 +16,15 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.spark._
 import com.quantifind.sumac.ArgMain
 import com.github.nscala_time.time.Imports._
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.slf4j.LazyLogging
 import com.quantifind.sumac.validation.Required
 
 class NexIngestArgs extends AccumuloIngestArgs {
   @Required var s3PageSize: Integer = _
-} 
+}
 
 /** Ingests the chunked NEX GeoTIFF data */
-object NEXIngest extends ArgMain[NexIngestArgs] with Logging {
+object NEXIngest extends ArgMain[NexIngestArgs] with LazyLogging {
   def main(args: NexIngestArgs): Unit = {
     System.setProperty("com.sun.media.jai.disableMediaLib", "true")
 
@@ -34,15 +34,11 @@ object NEXIngest extends ArgMain[NexIngestArgs] with Logging {
     val accumulo = AccumuloInstance(args.instance, args.zookeeper, args.user, new PasswordToken(args.password))
     val layoutScheme = ZoomedLayoutScheme()
 
-    val save = { (rdd: RasterRDD[SpaceTimeKey], level: LayoutLevel) =>
-      accumulo.catalog.save(LayerId(args.layerName, level.zoom), args.table, rdd, args.clobber)
-    }
-
     // Get source tiles
     val inPath = args.inPath
     S3InputFormat.setUrl(job, inPath.toUri.toString)
     S3InputFormat.setMaxKeys(job, args.s3PageSize)
-    val source = 
+    val source =
       sparkContext.newAPIHadoopRDD(
         job.getConfiguration,
         classOf[TemporalGeoTiffS3InputFormat],
@@ -50,12 +46,8 @@ object NEXIngest extends ArgMain[NexIngestArgs] with Logging {
         classOf[Tile]
       )
 
-    ClosedIngest[SpaceTimeInputKey, SpaceTimeKey](source, args.destCrs, layoutScheme){ (level, rdd) =>
-      if (args.pyramid) {
-        Pyramid.saveLevels(rdd, level, layoutScheme)(save)
-      } else{
-        save(rdd, level)
-      }
+    Ingest[SpaceTimeInputKey, SpaceTimeKey](source, args.destCrs, layoutScheme){ (rdd, level) =>
+      accumulo.catalog.save(LayerId(args.layerName, level.zoom), args.table, rdd, args.clobber)
     }
   }
 }

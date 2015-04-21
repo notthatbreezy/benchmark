@@ -4,18 +4,11 @@ import geotrellis.raster._
 import geotrellis.raster.op.local._
 import geotrellis.spark._
 import org.apache.spark.rdd.PairRDDFunctions
-import geotrellis.raster.stats._
+import geotrellis.raster.op.stats._
+import geotrellis.raster.histogram._
 
 import scala.reflect.ClassTag
 
-object PredicateCount {
-  def apply[K: ClassTag](cellType: CellType, predicate: Double=>Double, keyBin: K=>K)(rdd: RasterRDD[K]): RasterRDD[K] =  {
-    asRasterRDD(rdd.metaData.copy(cellType = cellType)) {
-      val bins = rdd.mapPairs{ case (key, tile) => keyBin(key) -> tile.convert(cellType).mapDouble(predicate) }
-      new PairRDDFunctions(bins).reduceByKey{ (t1, t2) => t1.localAdd(t2) }
-    }
-  }
-}
 
 object BinSum {
   def apply[K: ClassTag](cellType: CellType, keyBin: K => K)(rdd: RasterRDD[K]): RasterRDD[K] =

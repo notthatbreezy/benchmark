@@ -21,10 +21,10 @@ import org.apache.hadoop.fs.Path
 import org.apache.spark._
 import com.quantifind.sumac.ArgMain
 import com.github.nscala_time.time.Imports._
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
 /** Ingests the chunked NEX GeoTIFF data */
-object NexHdfsIngest extends ArgMain[HadoopIngestArgs] with Logging {
+object NexHdfsIngest extends ArgMain[HadoopIngestArgs] with LazyLogging {
   def main(args: HadoopIngestArgs): Unit = {
     System.setProperty("com.sun.media.jai.disableMediaLib", "true")
 
@@ -36,34 +36,17 @@ object NexHdfsIngest extends ArgMain[HadoopIngestArgs] with Logging {
     val inPath = args.inPath
     S3InputFormat.setUrl(job, inPath.toUri.toString)
 
-    val source = 
+    val source =
       sparkContext.newAPIHadoopRDD(
         job.getConfiguration,
         classOf[TemporalGeoTiffS3InputFormat],
         classOf[SpaceTimeInputKey],
         classOf[Tile]
       )
-  
-    val save = { (rdd: RasterRDD[SpaceTimeKey], level: LayoutLevel) =>
-      val layer = LayerId(args.layerName, level.zoom)
-      val outPath = s"${args.catalog}/${args.layerName}/${level.zoom}"
-      val encoded = 
-        rdd
-        .map { case (key, tile) => 
-          TimeRasterAccumuloDriver.getKey(layer, key) -> new Value(tile.toBytes)
-        }
-        .sortBy(_._1)
-        
-      import org.apache.spark.SparkContext._
-      encoded.saveAsNewAPIHadoopFile(outPath, classOf[Text], classOf[Mutation], classOf[AccumuloFileOutputFormat], job.getConfiguration)
-    }
 
-    val (level, rdd) =  Ingest[SpaceTimeInputKey, SpaceTimeKey](source, args.destCrs, layoutScheme)
-
-    if (args.pyramid) {
-      Pyramid.saveLevels(rdd, level, layoutScheme)(save)
-    } else{
-      save(rdd, level)
+    val catalog = HadoopCatalog(sparkContext, args.catalogPath)
+    Ingest[SpaceTimeInputKey, SpaceTimeKey](source, args.destCrs, layoutScheme){ (rdd, level) =>
+      catalog.save(LayerId(args.layerName, level.zoom), rdd, true)
     }
   }
 }

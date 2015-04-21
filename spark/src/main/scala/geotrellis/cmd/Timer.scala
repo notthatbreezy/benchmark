@@ -1,8 +1,8 @@
 package climate.cmd
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
-object Timer extends Logging {
+object Timer extends LazyLogging {
   // Time how long a block takes to execute.  From here:
   // http://stackoverflow.com/questions/9160001/how-to-profile-methods-in-scala
   def timedTask[R](msg: String)(block: => R): R = {

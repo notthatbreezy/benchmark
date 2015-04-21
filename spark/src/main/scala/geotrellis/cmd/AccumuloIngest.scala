@@ -22,16 +22,8 @@ object AccumuloIngestCommand extends ArgMain[AccumuloIngestArgs] with Logging {
     val source = sparkContext.netCdfRDD(args.inPath).repartition(args.partitions)
 
     val layoutScheme = ZoomedLayoutScheme(64)
-    val (level, rdd) =  Ingest[NetCdfBand, SpaceTimeKey](source, args.destCrs, layoutScheme)
-
-    val save = { (rdd: RasterRDD[SpaceTimeKey], level: LayoutLevel) =>
+    Ingest[NetCdfBand, SpaceTimeKey](source, args.destCrs, layoutScheme, args.pyramid){ (rdd, level) =>
       accumulo.catalog.save(LayerId(args.layerName, level.zoom), args.table, rdd, args.clobber)
-    }
-
-    if (args.pyramid) {
-      Pyramid.saveLevels(rdd, level, layoutScheme)(save)
-    } else{
-      save(rdd, level)
     }
   }
 }

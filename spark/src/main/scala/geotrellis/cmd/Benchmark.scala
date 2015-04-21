@@ -15,14 +15,14 @@ import geotrellis.vector.reproject._
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.hadoop.fs.Path
 import org.apache.spark._
-import geotrellis.vector.json._
+import geotrellis.vector.io.json._
 import geotrellis.spark.op.zonal.summary._
 import geotrellis.raster.op.zonal.summary._
 import geotrellis.spark.op.stats._
 import com.github.nscala_time.time.Imports._
 import geotrellis.raster.op.local
 import geotrellis.raster._
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.slf4j.LazyLogging
 import org.apache.spark.SparkContext._
 import com.github.nscala_time.time.Imports._
 import geotrellis.spark.op.local._
@@ -31,19 +31,19 @@ class BenchmarkArgs extends AccumuloArgs {
   /** Comma seprated list of layerId:Zoom */
   @Required var layers: String = _
 
-  def getLayers: Array[LayerId] = 
+  def getLayers: Array[LayerId] =
     layers
       .split(",")
-      .map{ str => 
+      .map{ str =>
         val Array(name, zoom) = str.split(":")
         LayerId(name, zoom.toInt)
       }
 }
 
 object Extents extends GeoJsonSupport {
-  import spray.json._  
+  import spray.json._
   val extents = Map[String, Polygon](
-    "philadelphia" -> 
+    "philadelphia" ->
       """{"type":"Feature","properties":{"name":6},"geometry":{
         "type":"Polygon",
         "coordinates":[[
@@ -61,7 +61,7 @@ object Extents extends GeoJsonSupport {
             [-94.6142578125,39.9434364619742],
             [-94.6142578125,37.055177106660814],
             [-98.26171875,37.055177106660814]]]}}""".parseJson.convertTo[Polygon],
-    "Rockies" -> 
+    "Rockies" ->
       """{"type":"Feature","properties":{"name":3},"geometry":{
           "type":"Polygon",
           "coordinates":[[
@@ -70,7 +70,7 @@ object Extents extends GeoJsonSupport {
             [-107.9296875,48.19643332981063],
             [-107.9296875,32.69746078939034],
             [-120.23437499999999,32.69746078939034]]]}}""".parseJson.convertTo[Polygon],
-    "USA" -> 
+    "USA" ->
       """{"type":"Feature","properties":{"name":3},"geometry":{
           "type":"Polygon",
           "coordinates":[[
@@ -82,16 +82,14 @@ object Extents extends GeoJsonSupport {
   )
 }
 
-object Benchmark extends ArgMain[BenchmarkArgs] with Logging {
+object Benchmark extends ArgMain[BenchmarkArgs] with LazyLogging {
   import Extents._
-  
-  
 
   def getRdd(catalog: AccumuloCatalog, id: LayerId, polygon: Polygon, name: String): RasterRDD[SpaceTimeKey] = {
     val (lmd, params) = catalog.metaDataCatalog.load(id)
-    val md = lmd.rasterMetaData  
+    val md = lmd.rasterMetaData
     println(s"getRDD MD: $md")
-    val bounds = md.mapTransform(polygon.envelope)        
+    val bounds = md.mapTransform(polygon.envelope)
     println(s"getRDD GridBounds: $bounds")
     val rdd = catalog.load[SpaceTimeKey](id, FilterSet(SpaceFilter[SpaceTimeKey](bounds)))
     rdd.setName(name)
@@ -109,10 +107,10 @@ object Benchmark extends ArgMain[BenchmarkArgs] with Logging {
 
   def annualAverage(rdd: RasterRDD[SpaceTimeKey]): Seq[(org.joda.time.DateTime, Double)] = {
     rdd
-      .map{ case (key, tile) =>         
+      .map{ case (key, tile) =>
         var total: Double = 0
         var count = 0L
-        tile.foreachDouble{ d => 
+        tile.foreachDouble{ d =>
           if(! isNoData(d)) {
             total += d
             count += 1
@@ -121,12 +119,12 @@ object Benchmark extends ArgMain[BenchmarkArgs] with Logging {
         val year = key.updateTemporalComponent(key.temporalKey.time.withMonthOfYear(1).withDayOfMonth(1).withHourOfDay(0)).temporalComponent.time
         year -> (total, count)
       }
-      .reduceByKey{ (tup1, tup2) => 
+      .reduceByKey{ (tup1, tup2) =>
         (tup1._1 + tup2._1) -> (tup1._2 + tup2._2)
       }
       .collect
-      .map{ case (year, (sum, count)) => 
-        year -> sum/count 
+      .map{ case (year, (sum, count)) =>
+        year -> sum/count
       }
   }
 
@@ -144,31 +142,31 @@ object Benchmark extends ArgMain[BenchmarkArgs] with Logging {
     val accumulo = AccumuloInstance(args.instance, args.zookeeper, args.user, new PasswordToken(args.password))
     val catalog = accumulo.catalog
     val layers = args.getLayers
-    // for { 
+    // for {
     //   (name, polygon) <- extents
     //   count <- 1 to 4
     // } {
     //   val rdd = getRdd(catalog, layers.head, polygon, name)
-    //   Timer.timedTask(s"""Benchmark: {type: LoadTiles, name: $name}""", s => logger.info(s)){        
-    //     logger.info(s"Stats: $name = (${stats(rdd)})")        
+    //   Timer.timedTask(s"""Benchmark: {type: LoadTiles, name: $name}""", s => logger.info(s)){
+    //     logger.info(s"Stats: $name = (${stats(rdd)})")
     //   }
 
     //   Timer.timedTask(s"""Benchmark: {type: AnnualZonalSummary, name: $name}""", s => logger.info(s)) {
-    //     zonalSummary(rdd, polygon)      
+    //     zonalSummary(rdd, polygon)
     //   }
     // }
 
-    for { 
+    for {
       (name, polygon) <- extents
-    } {    
+    } {
       val rdds = layers.map { layer => getRdd(catalog, layer, polygon, name)}
-      
+
       // Timer.timedTask(s"""Benchmark: {type: MultiModel-averageByKey, name: $name, layers: ${layers.toList}}""", s => logger.info(s)) {
       //   new RasterRDD[SpaceTimeKey](rdds.reduce(_ union _), rdds.head.metaData)
       //     .averageByKey
       //     .foreachPartition(_ => {})
       // }
-      
+
       // Timer.timedTask(s"""Benchmark: {type: MultiModel-combineTiles(local.Mean), name: $name, layers: ${layers.toList}}""", s => logger.info(s)) {
       //   new RasterRDD[SpaceTimeKey](rdds.reduce(_ union _), rdds.head.metaData)
       //     rdds.head.combineTiles(rdds.tail)(local.Mean.apply)
@@ -177,9 +175,9 @@ object Benchmark extends ArgMain[BenchmarkArgs] with Logging {
       var diff:RasterRDD[SpaceTimeKey] = null
       Timer.timedTask(s"""Benchmark: {type: MultiModel-localSubtract-fresh, name: $name, layers: ${layers.toList}}""", s => logger.info(s)) {
         diff = rdds(1) localSubtract rdds(0)
-        diff.foreachPartition(_ => {})        
+        diff.foreachPartition(_ => {})
       }
-      Timer.timedTask(s"""Benchmark: {type: MultiModel-localSubtract-count, name: $name, layers: ${layers.toList}}""", s => logger.info(s)) {        
+      Timer.timedTask(s"""Benchmark: {type: MultiModel-localSubtract-count, name: $name, layers: ${layers.toList}}""", s => logger.info(s)) {
         logger.info(s"RECORD COUNT: ${diff.count}")
       }
 

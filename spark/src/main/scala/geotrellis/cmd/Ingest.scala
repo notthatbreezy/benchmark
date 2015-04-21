@@ -26,16 +26,8 @@ object HDFSIngest extends ArgMain[HadoopIngestArgs] with Logging {
     val source = sparkContext.netCdfRDD(args.inPath).repartition(12);
 
     val layoutScheme = ZoomedLayoutScheme(256)
-    val (level, rdd) =  Ingest[NetCdfBand, SpaceTimeKey](source, args.destCrs, layoutScheme, true)
-
-    val save = { (rdd: RasterRDD[SpaceTimeKey], level: LayoutLevel) =>
+    Ingest[NetCdfBand, SpaceTimeKey](source, args.destCrs, layoutScheme, true){ (rdd, level) =>
       catalog.save(LayerId(args.layerName, level.zoom), rdd, true)
-    }
-
-    if (args.pyramid) {
-      Pyramid.saveLevels(rdd, level, layoutScheme)(save) // expose exceptions
-    } else{
-      save(rdd, level)
     }
   }
 }

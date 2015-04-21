@@ -104,7 +104,7 @@ object BenchmarkBuild extends Build {
       libraryDependencies ++= Seq(
         "com.azavea.geotrellis" %% "geotrellis-spark" % Version.geotrellis,
         "com.google.code.caliper" % "caliper" % "1.0-SNAPSHOT" from "http://plastic-idolatry.com/jars/caliper-1.0-SNAPSHOT.jar",
-        "org.apache.spark" %% "spark-core" % "1.2.1",
+        "org.apache.spark" %% "spark-core" % Version.spark % "provided",
         "com.google.guava" % "guava" % "r09",
         "com.google.code.java-allocation-instrumenter" % "java-allocation-instrumenter" % "2.0",
         "com.google.code.gson" % "gson" % "1.7.1"
@@ -113,7 +113,7 @@ object BenchmarkBuild extends Build {
       // enable forking in both run and test
       fork := true
 
-    )
+    ) ++ defaultAssemblySettings
 
   // Project: geotiff-benchmark
 
